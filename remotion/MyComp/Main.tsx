@@ -1,63 +1,92 @@
-import { z } from "zod";
-import {
-  AbsoluteFill,
-  Sequence,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
-import { CompositionProps } from "../../types/constants";
-import { NextLogo } from "./NextLogo";
-import { loadFont, fontFamily } from "@remotion/google-fonts/Inter";
-import React, { useMemo } from "react";
-import { Rings } from "./Rings";
-import { TextFade } from "./TextFade";
+import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
+import { images, stamps } from "../../types/constants";
+import { loadFont } from "@remotion/google-fonts/Inter";
+import React from "react";
+import { TextBounce } from "./TextBounce";
+import HighlightedText from "./HighlightedText";
+import CaptionsWrapper from "./CaptionsWrapper";
 
 loadFont();
 
 const container: React.CSSProperties = {
-  backgroundColor: "white",
+  backgroundColor: "black",
+  position: "relative",
 };
 
-const logo: React.CSSProperties = {
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
-  const frame = useCurrentFrame();
+export const Main = () => {
   const { fps } = useVideoConfig();
 
-  const transitionStart = 2 * fps;
-  const transitionDuration = 1 * fps;
-
-  const logoOut = spring({
-    fps,
-    frame,
-    config: {
-      damping: 200,
-    },
-    durationInFrames: transitionDuration,
-    delay: transitionStart,
-  });
-
-  const titleStyle: React.CSSProperties = useMemo(() => {
-    return { fontFamily, fontSize: 70 };
-  }, []);
+  let imageDuration = 0;
+  let captionDuration = 0;
 
   return (
     <AbsoluteFill style={container}>
-      <Sequence durationInFrames={transitionStart + transitionDuration}>
-        <Rings outProgress={logoOut}></Rings>
-        <AbsoluteFill style={logo}>
-          <NextLogo outProgress={logoOut}></NextLogo>
-        </AbsoluteFill>
-      </Sequence>
-      <Sequence from={transitionStart + transitionDuration / 2}>
-        <TextFade>
-          <h1 style={titleStyle}>{title}</h1>
-        </TextFade>
-      </Sequence>
+      {images.map((image, key) => (
+        <Sequence
+          key={key}
+          from={(() => {
+            const prev = imageDuration;
+            imageDuration += image.duration;
+            return prev * fps;
+          })()}
+          durationInFrames={image.duration * fps}
+        >
+          <div
+            className="animate-span"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                scale: 1.5,
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-20%",
+                  left: "-20%",
+                  width: "120%",
+                  height: "120%",
+                  zIndex: 2,
+                  background: "black",
+                  opacity: 0.15,
+                }}
+              ></div>
+              {key % 2 ? (
+                <img src={image.src} className="slide-left-image" />
+              ) : (
+                <img src={image.src} className="slide-top-image" />
+              )}
+            </div>
+          </div>
+        </Sequence>
+      ))}
+      {stamps.map((stamp, key) => (
+        <Sequence
+          key={key}
+          from={(() => {
+            const prev = captionDuration;
+            captionDuration += stamp.duration;
+            return prev * fps;
+          })()}
+          durationInFrames={stamp.duration * fps}
+        >
+          <CaptionsWrapper>
+            <TextBounce>
+              <HighlightedText text={stamp.title} duration={stamp.duration} />
+            </TextBounce>
+          </CaptionsWrapper>
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };

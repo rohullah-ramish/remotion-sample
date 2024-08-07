@@ -1,20 +1,14 @@
 import { Player } from "@remotion/player";
 import type { NextPage } from "next";
 import Head from "next/head";
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { Main } from "../remotion/MyComp/Main";
 import {
-  CompositionProps,
-  defaultMyCompProps,
   DURATION_IN_FRAMES,
   VIDEO_FPS,
   VIDEO_HEIGHT,
   VIDEO_WIDTH,
 } from "../types/constants";
-import { z } from "zod";
-import { RenderControls } from "../components/RenderControls";
-import { Tips } from "../components/Tips/Tips";
-import { Spacing } from "../components/Spacing";
 
 const container: React.CSSProperties = {
   maxWidth: 768,
@@ -35,14 +29,6 @@ const player: React.CSSProperties = {
 };
 
 const Home: NextPage = () => {
-  const [text, setText] = useState<string>(defaultMyCompProps.title);
-
-  const inputProps: z.infer<typeof CompositionProps> = useMemo(() => {
-    return {
-      title: text,
-    };
-  }, [text]);
-
   return (
     <div>
       <Head>
@@ -58,7 +44,6 @@ const Home: NextPage = () => {
         <div className="cinematics" style={outer}>
           <Player
             component={Main}
-            inputProps={inputProps}
             durationInFrames={DURATION_IN_FRAMES}
             fps={VIDEO_FPS}
             compositionHeight={VIDEO_HEIGHT}
@@ -69,16 +54,6 @@ const Home: NextPage = () => {
             loop
           />
         </div>
-        <RenderControls
-          text={text}
-          setText={setText}
-          inputProps={inputProps}
-        ></RenderControls>
-        <Spacing></Spacing>
-        <Spacing></Spacing>
-        <Spacing></Spacing>
-        <Spacing></Spacing>
-        <Tips></Tips>
       </div>
     </div>
   );
